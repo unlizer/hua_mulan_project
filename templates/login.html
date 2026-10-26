@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 400px; margin: 60px auto; padding: 30px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
+    <h2>🏯 Ресторан Hua Mulan</h2>
+    <p style="color: #666; margin-bottom: 25px;">Онлайн-система учета смен персонала</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <div style="color: red; font-weight: bold; margin-bottom: 15px;">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div id="choice-buttons">
+        <button onclick="showForm('admin')" class="btn btn-primary" style="width: 100%; margin-bottom: 12px; padding: 12px;">🔑 Вход для Администратора</button>
+        <button onclick="showForm('staff')" class="btn btn-secondary" style="width: 100%; padding: 12px;">🥢 Вход для Сотрудников</button>
+    </div>
+
+    <form id="admin-form" action="{{ url_for('login') }}" method="POST" style="display: none; margin-top: 15px; text-align: left;">
+        <h3>Панель Администратора</h3>
+        <p><input type="text" name="login" placeholder="Логин администратора" required style="width: 95%; padding: 8px; border-radius:4px; border:1px solid #ccc;"></p>
+        <p><input type="password" name="password" placeholder="Пароль" required style="width: 95%; padding: 8px; border-radius:4px; border:1px solid #ccc;"></p>
+        <button type="submit" class="btn btn-primary">Войти</button>
+        <button type="button" onclick="resetView()" class="btn btn-secondary">← Назад</button>
+    </form>
+
+    <form id="staff-form" action="{{ url_for('login') }}" method="POST" style="display: none; margin-top: 15px; text-align: left;">
+        <h3>Личный кабинет сотрудника</h3>
+        <p>Выберите ваше имя:
+            <select name="login" required style="width: 100%; padding: 8px;">
+                <option value="">-- Нажмите для выбора --</option>
+                {% for login, name, role in staff_list %}
+                    <option value="{{ login }}">{{ name }} ({{ role }})</option>
+                {% endfor %}
+            </select>
+        </p>
+        <p><input type="password" name="password" placeholder="Введите ваш пароль" required style="width: 95%; padding: 8px; border-radius:4px; border:1px solid #ccc;"></p>
+        <button type="submit" class="btn btn-primary">Войти</button>
+        <button type="button" onclick="resetView()" class="btn btn-secondary">← Назад</button>
+    </form>
+</div>
+
+<script>
+function showForm(type) {
+    document.getElementById('choice-buttons').style.display = 'none';
+    if(type === 'admin') document.getElementById('admin-form').style.display = 'block';
+    if(type === 'staff') document.getElementById('staff-form').style.display = 'block';
+}
+function resetView() {
+    document.getElementById('choice-buttons').style.display = 'block';
+    document.getElementById('admin-form').style.display = 'none';
+    document.getElementById('staff-form').style.display = 'none';
+}
+</script>
+{% endblock %}

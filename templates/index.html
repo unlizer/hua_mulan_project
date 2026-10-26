@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1>🏯 Ресторан Hua Mulan</h1>
+    <div>
+        Вы вошли как: **{{ session['user_name'] }}** ({{ session['role_name'] }}) | 
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;">Выйти 🚪</a>
+    </div>
+</div>
+
+<div style="background: #eee; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center;">
+    <div>
+        <strong>Выберите месяц:</strong>
+        <input type="month" id="month-picker" value="{{ selected_month }}" onchange="changePeriodOrMonth()">
+    </div>
+    <div>
+        <strong>Период:</strong>
+        <select id="period-picker" onchange="changePeriodOrMonth()">
+            <option value="1-15" {% if selected_period == '1-15' %}selected{% endif %}>1 - 15 число</option>
+            <option value="16-31" {% if selected_period == '16-31' %}selected{% endif %}>16 - конец месяца</option>
+        </select>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for msg in messages %}
+      <div class="flash-msg">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+{% if session['is_admin'] %}
+  {% include 'admin_panel.html' %}
+{% endif %}
+
+<h2>📋 Текущий экран: График с {% if selected_period == '1-15' %}1 по 15 число{% else %}16 числа по конец месяца{% endif %}</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th rowspan="2" style="width: 180px;">Сотрудник</th>
+            <th rowspan="2" style="width: 100px;">Должность</th>
+            {% for day in days %}
+                <th class="{% if day.weekday_index >= 5 %}weekend{% endif %}">{{ day.day_num }}</th>
+            {% endfor %}
+            <th rowspan="2" style="width: 110px;">Зарплата</th>
+        </tr>
+        <tr>
+            {% for day in days %}
+                <td class="{% if day.weekday_index >= 5 %}weekend{% endif %}"><small>{{ day.weekday_name }}</small></td>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in grid_data %}
+        <tr>
+            <td style="text-align: left; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px;">
+                <span>{{ row.name }}</span>
+                {% if session['is_admin'] and not row.is_admin_role %}
+                    <span style="color: red; cursor: pointer; margin-left: 5px;" onclick="deleteEmployee({{ row.id }}, '{{ row.name }}')">❌</span>
+                {% endif %}
+            </td>
+            <td style="border-left: 1px solid #e0e0e0;"><small>{{ row.role }}</small></td>
+            
+            {% for shift in row.shifts %}
+            <td class="shift-cell {% if shift.code %}shift-{{ shift.code }}{% endif %}">
+                {% if session['is_admin'] or session['user_id'] == row.id %}
+                    <select class="shift-select" data-emp-id="{{ row.id }}" data-date="{{ shift.date }}" onchange="updateShift(this)">
+                        <option value="" {% if shift.code == '' %}selected{% endif %}>-</option>
+                        <option value="У" {% if shift.code == 'У' %}selected{% endif %}>У</option>
+                        <option value="В" {% if shift.code == 'В' %}selected{% endif %}>В</option>
+                        <option value="ВЫХ" {% if shift.code == 'ВЫХ' %}selected{% endif %}>ВЫХ</option>
+                    </select>
+                {% else %}
+                    <strong>{{ shift.code if shift.code else '-' }}</strong>
+                {% endif %}
+            </td>
+            {% endfor %}
+            
+            <td style="font-weight: bold; color: green; font-size: 15px;">{{ row.salary }} ₽</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p style="margin-top: 15px; background: #fff; padding: 10px; border: 1px solid #e0e0e0; display: inline-block; border-radius: 4px;">
+    <span class="shift-У" style="padding: 2px 6px; border-radius:3px; font-weight:bold;">У</span> — Утро (10:00 - 23:00, 13 ч) &nbsp;&nbsp;|&nbsp;&nbsp;
+    <span class="shift-В" style="padding: 2px 6px; border-radius:3px; font-weight:bold;">В</span> — Вечер (16:30 - 23:30, 7 ч) &nbsp;&nbsp;|&nbsp;&nbsp;
+    <strong>- / ВЫХ</strong> — Выходной
+</p>
+
+<script>
+function changePeriodOrMonth() {
+    const month = document.getElementById('month-picker').value;
+    const period = document.getElementById('period-picker').value;
+    window.location.href = `/?month=${month}&period=${period}`;
+}
+
+function updateShift(selectElement) {
+    const empId = selectElement.getAttribute('data-emp-id');
+    const date = selectElement.getAttribute('data-date');
+    const code = selectElement.value;
+
+    fetch('/update_shift_ajax', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emp_id: empId, date: date, code: code })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert('Ошибка: ' + data.message);
+            location.reload(); // Возвращаем старое значение визуально
+        }
+    })
+    .catch(err => {
+        console.error('Ошибка AJAX:', err);
+        location.reload();
+    });
+}
+
+function deleteEmployee(empId, name) {
+    if (confirm(`Вы действительно хотите безвозвратно удалить сотрудника "${name}" и стереть все его смены из календаря?`)) {
+        fetch('/delete_employee_ajax', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ emp_id: empId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Обязательно делаем полную перезагрузку страницы, чтобы строка исчезла!
+                window.location.reload(true);
+            } else {
+                alert('Ошибка при удалении: ' + data.message);
+            }
+        })
+        .catch(err => alert('Ошибка сети при удалении'));
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Hua Mulan — Онлайн График</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 30px; background: #fdfdfd; color: #333; }
+        h1, h2, h3 { color: #8b0000; margin-bottom: 15px; }
+        table { background: white; margin-top: 15px; width: 100%; border-collapse: collapse; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        th { background: #8b0000; color: white; padding: 10px; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+        td { padding: 8px; text-align: center; border: 1px solid #e0e0e0; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        select { padding: 4px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-weight: bold; }
+        .btn { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #8b0000; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-link { color: #8b0000; text-decoration: underline; background: none; border: none; padding: 0; cursor: pointer; }
+        .flash-msg { padding: 10px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 15px; }
+        .shift-У { background-color: #fff3cd !important; color: #856404; }
+        .shift-В { background-color: #d1ecf1 !important; color: #0c5460; }
+        .weekend { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

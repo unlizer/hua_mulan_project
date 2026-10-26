@@ -1,0 +1,33 @@
+<div style="background: #fdf5f5; padding: 20px; margin-bottom: 25px; border-radius: 6px; border: 1px solid #ffcccc;">
+    <h3 style="margin-top:0;">⚙️ Управление графиком (Администратор)</h3>
+    
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+        <!-- Авторасчет смен -->
+        <form action="{{ url_for('auto_schedule') }}" method="POST" style="margin: 0;">
+            <input type="hidden" name="month" value="{{ selected_month }}">
+            <input type="hidden" name="period" value="{{ selected_period }}">
+            <button type="submit" class="btn btn-primary" style="background: #28a745;">
+                🤖 Заполнить автоматически (Официанты)
+            </button>
+        </form>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #ffcccc; margin: 15px 0;">
+
+    <!-- Добавление нового сотрудника -->
+    <h4 style="margin-top:0; margin-bottom:10px;">👥 Добавить нового сотрудника в базу</h4>
+    <form action="{{ url_for('add_employee') }}" method="POST" style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+        <label>ФИО: <input type="text" name="name" required style="padding:5px; border-radius:4px; border:1px solid #ccc;"></label>
+        <label>Логин: <input type="text" name="login" required style="padding:5px; border-radius:4px; border:1px solid #ccc;"></label>
+        <label>Пароль: <input type="password" name="password" required style="padding:5px; border-radius:4px; border:1px solid #ccc;"></label>
+        
+        <label>Должность:
+            <select name="role_id" required>
+                {% for r_id, r_name in roles %}
+                    <option value="{{ r_id }}">{{ r_name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="btn btn-primary" style="padding: 5px 15px;">Создать аккаунт</button>
+    </form>
+</div>
