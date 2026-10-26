@@ -59,7 +59,10 @@
             <td style="text-align: left; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px;">
                 <span>{{ row.name }}</span>
                 {% if session['is_admin'] and not row.is_admin_role %}
-                    <span style="color: red; cursor: pointer; margin-left: 5px;" onclick="deleteEmployee({{ row.id }}, '{{ row.name }}')">❌</span>
+                    <span style="color: red; cursor: pointer; margin-left: 5px;" 
+                          data-id="{{ row.id }}" 
+                          data-name="{{ row.name }}" 
+                          onclick="deleteEmployee(this)">❌</span>
                 {% endif %}
             </td>
             <td style="border-left: 1px solid #e0e0e0;"><small>{{ row.role }}</small></td>
@@ -114,7 +117,7 @@ function updateShift(selectElement) {
             location.reload();
         } else {
             alert('Ошибка: ' + data.message);
-            location.reload(); // Возвращаем старое значение визуально
+            location.reload();
         }
     })
     .catch(err => {
@@ -123,7 +126,10 @@ function updateShift(selectElement) {
     });
 }
 
-function deleteEmployee(empId, name) {
+function deleteEmployee(element) {
+    const empId = element.getAttribute('data-id');
+    const name = element.getAttribute('data-name');
+
     if (confirm(`Вы действительно хотите безвозвратно удалить сотрудника "${name}" и стереть все его смены из календаря?`)) {
         fetch('/delete_employee_ajax', {
             method: 'POST',
@@ -133,7 +139,6 @@ function deleteEmployee(empId, name) {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Обязательно делаем полную перезагрузку страницы, чтобы строка исчезла!
                 window.location.reload(true);
             } else {
                 alert('Ошибка при удалении: ' + data.message);
